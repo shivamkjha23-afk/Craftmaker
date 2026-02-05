@@ -1,34 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechStore - Your Digital Shopping Destination</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="CraftMaker — curated handcrafted and digital products. Discover unique items, add to cart and place orders via WhatsApp." />
+    <meta name="theme-color" content="#0b74de" />
+    <title>CraftMaker — Curated Handcrafted & Digital Goods</title>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Icons / Utilities -->
+    <link rel="icon" href="favicon.png" type="image/png" />
+
+    <!-- XLSX (kept from original if used elsewhere) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+
+    <style>
+      /* Minimal inline helpers for accessibility & layout fallbacks */
+      :root{--brand:#0b74de;--surface:#fff;--muted:#666}
+      .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+      /* small responsive grid fallback so page looks OK before style.css loads */
+      .container{max-width:1100px;margin:0 auto;padding:0 16px}
+      header{background:linear-gradient(90deg,var(--brand),#2fb3ff);color:#fff}
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <h1 class="logo">🛒 TechStore</h1>
-                <button class="cart-btn" id="cartBtn">
-                    <span class="cart-icon">🛒</span>
-                    <span class="cart-count" id="cartCount">0</span>
-                </button>
-            </div>
+    <!-- Header / Navigation -->
+    <header role="banner" aria-label="Main header">
+        <div class="container header-content" style="display:flex;align-items:center;gap:12px;padding:16px 0;">
+            <a class="logo" href="/" aria-label="CraftMaker homepage" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;font-weight:700">
+                <span style="font-size:28px" aria-hidden="true">✨</span>
+                <span style="font-size:20px">CraftMaker</span>
+            </a>
+
+            <!-- Search -->
+            <form id="searchForm" role="search" aria-label="Search products" style="flex:1;">
+                <label for="searchInput" class="sr-only">Search products</label>
+                <input id="searchInput" name="q" type="search" placeholder="Search products, categories, makers..." aria-label="Search products" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.1)" />
+            </form>
+
+            <!-- Category select -->
+            <label for="categorySelect" class="sr-only">Filter by category</label>
+            <select id="categorySelect" aria-label="Filter by category" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff">
+                <option value="">All categories</option>
+                <option value="art">Art & Decor</option>
+                <option value="accessories">Accessories</option>
+                <option value="digital">Digital</option>
+                <option value="home">Home</option>
+            </select>
+
+            <!-- Cart Button -->
+            <button class="cart-btn" id="cartBtn" aria-haspopup="dialog" aria-controls="cartDrawer" aria-expanded="false" style="margin-left:8px;padding:8px 12px;border-radius:8px;border:none;background:#fff;color:var(--brand);display:flex;align-items:center;gap:8px;cursor:pointer">
+                <span class="cart-icon" aria-hidden="true">🧺</span>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+
+            <!-- Dark mode toggle -->
+            <button id="themeToggle" title="Toggle dark mode" aria-pressed="false" style="margin-left:8px;padding:8px;border-radius:8px;border:none;background:transparent;color:#fff;cursor:pointer">🌙</button>
         </div>
     </header>
 
+    <!-- Hero -->
+    <section class="hero container" style="padding:28px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:260px;">
+                <h1 style="margin:0 0 8px 0;font-size:28px">Handpicked goods from makers you’ll love</h1>
+                <p style="margin:0;color:var(--muted)">Discover limited-run crafts, accessories and downloadable digital items — curated and ready to ship.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <a href="#productsGrid" class="btn-primary" style="padding:12px 18px;border-radius:10px;background:var(--brand);color:#fff;text-decoration:none">Shop Featured</a>
+                <a href="#contact" class="btn-ghost" style="padding:10px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);text-decoration:none;color:inherit">Contact Maker</a>
+            </div>
+        </div>
+    </section>
+
     <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="spinner"></div>
+    <div class="loading-screen" id="loadingScreen" aria-live="polite" style="display:none;">
+        <div class="spinner" aria-hidden="true"></div>
         <p>Loading products...</p>
     </div>
 
     <!-- Error Message -->
-    <div class="error-message" id="errorMessage" style="display: none;">
+    <div class="error-message" id="errorMessage" role="alert" style="display:none;">
         <div class="error-content">
             <h2>⚠️ Error Loading Products</h2>
             <p id="errorText"></p>
@@ -37,56 +91,180 @@
     </div>
 
     <!-- Main Content -->
-    <main class="container">
+    <main class="container" id="main" role="main" style="padding-bottom:48px;">
         <!-- Products Grid -->
-        <section class="products-section">
-            <h2 class="section-title">Featured Products</h2>
-            <div class="products-grid" id="productsGrid">
-                <!-- Products will be loaded here -->
+        <section class="products-section" aria-labelledby="featuredTitle" style="margin-top:18px;">
+            <h2 id="featuredTitle" class="section-title">Featured Products</h2>
+
+            <!-- Sort & info row -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
+                <div style="color:var(--muted)">Showing <span id="productCount">0</span> products</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <label for="sortSelect" class="sr-only">Sort products</label>
+                    <select id="sortSelect" aria-label="Sort products" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.08)">
+                        <option value="featured">Featured</option>
+                        <option value="price-asc">Price: Low → High</option>
+                        <option value="price-desc">Price: High → Low</option>
+                    </select>
+                </div>
             </div>
+
+            <div class="products-grid" id="productsGrid" role="list" aria-live="polite" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+                <!-- Product cards will be injected here by script.js -->
+            </div>
+        </section>
+
+        <!-- Contact / About -->
+        <section id="contact" style="margin-top:36px;padding:18px;background:rgba(11,116,222,0.04);border-radius:12px">
+            <h3>About CraftMaker</h3>
+            <p style="max-width:70ch;color:var(--muted)">CraftMaker connects curious shoppers with independent makers. We keep things small-batch and sustainably minded — if you want changes, message the maker directly via the order flow.</p>
         </section>
     </main>
 
-    <!-- Cart Drawer -->
-    <div class="cart-drawer" id="cartDrawer">
-        <div class="cart-overlay" id="cartOverlay"></div>
-        <div class="cart-content">
-            <div class="cart-header">
-                <h2>Shopping Cart</h2>
-                <button class="close-cart" id="closeCart">✕</button>
-            </div>
-            
-            <div class="cart-items" id="cartItems">
-                <!-- Cart items will be loaded here -->
+    <!-- Cart Drawer (improved, accessible) -->
+    <div class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cartTitle" style="display:none;">
+        <div class="cart-overlay" id="cartOverlay" tabindex="-1"></div>
+        <div class="cart-content" role="document" style="max-width:420px;">
+            <div class="cart-header" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;">
+                <h2 id="cartTitle">Your Cart</h2>
+                <button class="close-cart" id="closeCart" aria-label="Close cart">✕</button>
             </div>
 
-            <div class="cart-empty" id="cartEmpty" style="display: none;">
+            <div class="cart-items" id="cartItems" role="list" style="padding:8px 16px;">
+                <!-- Cart items injected here -->
+            </div>
+
+            <div class="cart-empty" id="cartEmpty" style="display:none;padding:16px;color:var(--muted);text-align:center">
                 <p>Your cart is empty</p>
-                <p class="cart-empty-subtitle">Add some products to get started!</p>
+                <p class="cart-empty-subtitle">Add products to get started</p>
             </div>
 
-            <div class="cart-footer" id="cartFooter">
-                <div class="cart-summary">
-                    <div class="summary-row">
+            <div class="cart-footer" id="cartFooter" style="padding:16px;">
+                <div class="cart-summary" style="margin-bottom:12px;">
+                    <div class="summary-row" style="display:flex;justify-content:space-between">
                         <span>Subtotal:</span>
                         <span id="cartSubtotal">₹0</span>
                     </div>
-                    <div class="summary-row discount">
+                    <div class="summary-row discount" style="display:flex;justify-content:space-between;color:#0a8a2a">
                         <span>Total Discount:</span>
                         <span id="cartDiscount">-₹0</span>
                     </div>
-                    <div class="summary-row total">
+                    <div class="summary-row total" style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px">
                         <span>Total:</span>
                         <span id="cartTotal">₹0</span>
                     </div>
                 </div>
-                <button class="whatsapp-btn" id="whatsappBtn">
-                    <span>📱</span> Place Order via WhatsApp
+
+                <button class="whatsapp-btn" id="whatsappBtn" style="width:100%;padding:12px;border-radius:10px;background:#25D366;color:#fff;border:none;display:flex;align-items:center;gap:10px;justify-content:center" aria-label="Place order via WhatsApp">
+                    <span aria-hidden="true">📱</span> Place Order via WhatsApp
                 </button>
+
+                <small style="display:block;margin-top:8px;color:var(--muted);text-align:center">By placing an order you agree to our <a href="/privacy.html">Privacy Policy</a> & <a href="/terms.html">Terms</a>.</small>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Footer -->
+    <footer style="border-top:1px solid rgba(0,0,0,0.06);padding:20px 0;margin-top:32px;">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="display:flex;gap:12px;align-items:center">
+                <span style="font-weight:700">CraftMaker</span>
+                <small style="color:var(--muted)">Handmade & digital — curated</small>
+            </div>
+
+            <div style="display:flex;gap:12px;align-items:center">
+                <nav aria-label="Footer">
+                    <a href="/about.html" style="margin-right:12px">About</a>
+                    <a href="/contact.html" style="margin-right:12px">Contact</a>
+                    <a href="/shipping.html">Shipping</a>
+                </nav>
+
+                <div style="text-align:right;color:var(--muted);font-size:13px">
+                    <span id="copyrightLabel">© CraftMaker <span id="year">2026</span></span><br />
+                    <small>Made with ♥ — All rights reserved.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Inline helpers: small scripts for theme, cart toggle & accessibility -->
+    <script>
+      // Keep this small — main product logic should remain in script.js for separation of concerns.
+      (function () {
+        // Brand name and dynamic year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Theme toggle (simple)
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+          const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+          if (dark) {
+            document.documentElement.removeAttribute('data-theme');
+            themeToggle.textContent = '🌙';
+            themeToggle.setAttribute('aria-pressed', 'false');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '☀️';
+            themeToggle.setAttribute('aria-pressed', 'true');
+          }
+        });
+
+        // Cart drawer open/close
+        const cartBtn = document.getElementById('cartBtn');
+        const cartDrawer = document.getElementById('cartDrawer');
+        const cartOverlay = document.getElementById('cartOverlay');
+        const closeCart = document.getElementById('closeCart');
+
+        function openCart() {
+          cartDrawer.style.display = '';
+          cartDrawer.setAttribute('aria-hidden', 'false');
+          cartBtn.setAttribute('aria-expanded', 'true');
+        }
+        function closeCartFn() {
+          cartDrawer.style.display = 'none';
+          cartDrawer.setAttribute('aria-hidden', 'true');
+          cartBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        cartBtn.addEventListener('click', openCart);
+        closeCart.addEventListener('click', closeCartFn);
+        cartOverlay.addEventListener('click', closeCartFn);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCartFn(); });
+
+        // WhatsApp button (placeholder) — script.js should compose real message with cart details
+        document.getElementById('whatsappBtn').addEventListener('click', () => {
+          // script.js should expose a function getCartSummary() that returns encoded message
+          const getCartSummary = window.getCartSummary || function(){ return encodeURIComponent('Hi, I would like to place an order from CraftMaker. Please help.'); };
+          const message = getCartSummary();
+          const phone = ''; // optionally put a phone number like '919999999999'
+          const url = phone ? `https://wa.me/${phone}?text=${message}` : `https://api.whatsapp.com/send?text=${message}`;
+          window.open(url, '_blank');
+        });
+
+        // Keep search & filters connected to script.js
+        const searchInput = document.getElementById('searchInput');
+        const categorySelect = document.getElementById('categorySelect');
+        const sortSelect = document.getElementById('sortSelect');
+
+        // Emit events so external script can listen
+        [searchInput, categorySelect, sortSelect].forEach(el => {
+          el.addEventListener('change', () => {
+            const ev = new CustomEvent('catalog:filter', { detail: { q: searchInput.value, category: categorySelect.value, sort: sortSelect.value } });
+            window.dispatchEvent(ev);
+          });
+        });
+
+        // If script.js manages loading, show a nice indicator on start
+        window.addEventListener('catalog:loading', () => {
+          document.getElementById('loadingScreen').style.display = '';
+        });
+        window.addEventListener('catalog:done', () => {
+          document.getElementById('loadingScreen').style.display = 'none';
+        });
+      })();
+    </script>
+
+    <!-- Main site script -->
+    <script src="script.js" defer></script>
 </body>
 </html>
